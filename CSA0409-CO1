@@ -1,0 +1,196 @@
+1 (a)
+A Multi-User Operating System is suitable for this environment because it allows multiple students to use the same Linux server simultaneously.
+It efficiently shares CPU, memory, and storage resources while providing security and independent user accounts.
+
+(b)
+
+Process Management: Creates, schedules, and terminates processes, ensuring fair CPU allocation.
+Memory Management: Allocates memory to processes and protects each process from accessing another process's memory.
+(c)
+
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        printf("Child Process ID: %d\n", getpid());
+        printf("Parent Process ID: %d\n", getppid());
+    }
+    else if (pid > 0) {
+        printf("Parent Process ID: %d\n", getpid());
+        printf("Child Process ID: %d\n", pid);
+    }
+    else {
+        printf("Process creation failed.\n");
+    }
+
+    return 0;
+}
+2 (a)
+
+The main file management system calls are:
+
+open() – Opens an existing file or creates a new file.
+write() – Writes data into the file.
+read() – Reads data from the file.
+close() – Closes the file and releases the resources.
+(b)
+1. open()
+
+The open() system call is used to open an existing file or create a new file.
+It returns a file descriptor, which is used to access the file in subsequent operations.
+It also specifies the mode of operation such as read-only, write-only, or read/write.
+
+2. write()
+
+The write() system call writes data from the program into the specified file.
+It stores the data permanently on secondary storage.
+It returns the number of bytes successfully written.
+(c)
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+    int fd;
+
+    fd = open("student.txt", O_CREAT | O_WRONLY, 0644);
+
+    if(fd < 0) {
+        printf("File creation failed");
+        return 1;
+    }
+
+    write(fd, "Student Name: Rahul\n", 20);
+
+    printf("Data written successfully.\n");
+
+    close(fd);
+
+    return 0;
+}
+3 (a)
+
+The required system calls are:
+
+open() – Opens the source and destination files.
+read() – Reads data from the source file.
+write() – Writes data into the destination file.
+close() – Closes both files after the operation is completed.
+(b)
+
+1. read()
+
+The read() system call reads data from the source file into a memory buffer.
+It returns the number of bytes read.
+It continues reading until the end of the file is reached.
+
+2. write()
+
+The write() system call transfers the data stored in the buffer to the destination file.
+It returns the number of bytes successfully written.
+It is used to save the copied contents permanently.
+(c)
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+    int src, dest;
+    char buffer[100];
+    int n;
+
+    src = open("source.txt", O_RDONLY);
+    dest = open("destination.txt", O_CREAT | O_WRONLY, 0644);
+
+    n = read(src, buffer, sizeof(buffer));
+
+    write(dest, buffer, n);
+
+    close(src);
+    close(dest);
+
+    printf("File copied successfully.\n");
+
+    return 0;
+}
+4 (a)
+
+fork()
+
+The fork() system call creates a new child process by duplicating the parent process.
+Both parent and child continue execution independently.
+
+exec()
+
+The exec() system call replaces the current process with a new program.
+It loads and executes another executable without creating a new process.
+(b)
+The wait() system call causes the parent process to wait until the child process completes execution.
+It prevents the creation of zombie processes.
+It also allows the parent to obtain the child's exit status before continuing.
+(c)
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main() {
+
+    pid_t pid;
+
+    pid = fork();
+
+    if(pid == 0) {
+        execl("/bin/ls", "ls", NULL);
+    }
+    else {
+        wait(NULL);
+        printf("Child process completed.\n");
+    }
+
+    return 0;
+}
+5 (a)
+
+File management is one of the major responsibilities of an operating system. It organizes files and directories on secondary storage so that users can easily create, access, modify, and delete files. It provides security by controlling file permissions, prevents unauthorized access, manages storage efficiently, and ensures reliable retrieval of data. It also supports backup, recovery, and efficient allocation of disk space.
+
+(b)
+
+open()
+
+Opens an existing file or creates a new file.
+Returns a file descriptor used for file operations.
+Specifies the mode such as read, write, or read/write.
+
+close()
+
+Closes the opened file after all operations are completed.
+Releases the file descriptor and system resources.
+Ensures that all buffered data is written to the file.
+(c)
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+
+    int fd;
+    char buffer[100];
+
+    fd = open("data.txt", O_RDONLY);
+
+    if(fd < 0) {
+        printf("Cannot open file");
+        return 1;
+    }
+
+    read(fd, buffer, sizeof(buffer));
+
+    printf("File Contents:\n%s", buffer);
+
+    close(fd);
+
+    return 0;
+}
