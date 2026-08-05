@@ -1,0 +1,181 @@
+Q1: Deadlock Condition
+
+A deadlock occurs because both processes acquire the resources in different orders.
+
+P1 locks R1 first and then tries to lock R2.
+P2 locks R2 first and then tries to lock R1.
+
+CODE TRACE
+Step	      Process P1       	                                   Process P2
+1	          LocksR1	                                              -
+2           Waits (100 ms)	                                    Locks R2
+3         	Tries to lock R2 (blocked because P2 holds it)	     Waits (100 ms)
+4	          Waiting for R2	                                    Tries to lock R1 (blocked because P1 holds it)
+Now,
+P1 is waiting for R2, which is held by P2.
+P2 is waiting for R1, which is held by P1.
+Both processes wait forever, causing a deadlock.
+Exact Condition Causing Deadlock
+
+The deadlock is caused by Circular Wait:
+P1 holds R1 and waits for R2.
+P2 holds R2 and waits for R1.
+
+This satisfies the four Coffman conditions:
+Mutual Exclusion
+Hold and Wait
+No Preemption
+Circular Wait 
+
+Optimization to Eliminate Deadlock
+Use a fixed resource ordering.
+Both processes should acquire resources in the same order.
+Example:
+Process P1:
+lock(R1)
+lock(R2)
+critical section
+unlock(R2)
+unlock(R1)
+
+Process P2:
+lock(R1)
+lock(R2)
+critical section
+unlock(R2)
+unlock(R1)
+
+Since both processes lock R1 first and then R2, circular wait cannot occur, eliminating deadlock without changing the process logic.
+
+
+Q2: CPU Utilization Problem 
+Cause of Low CPU Utilization
+
+The scheduler log shows:
+
+Ready → Waiting → Ready → Waiting → Ready ...
+
+This indicates that the processes are frequently entering the waiting state because they are waiting for I/O operations (disk, keyboard, network, etc.).
+
+As a result:
+
+The CPU remains idle while processes wait for I/O.
+Hence CPU utilization drops to about 30%.
+Process State Transition
+Ready
+   ↓
+Running
+   ↓
+Waiting (I/O Request)
+   ↓
+Ready
+   ↓
+Running
+
+The repeated Waiting state causes low CPU usage.
+
+System-Level Optimization
+
+To improve CPU utilization:
+Use multiprogramming so that while one process waits for I/O, another ready process uses the CPU.
+Improve I/O performance using buffering, caching, or asynchronous I/O.
+Use an efficient CPU scheduling algorithm (e.g., Round Robin or Multilevel Feedback Queue) to keep the CPU busy.
+  
+Result:
+CPU remains busy by executing other ready processes.
+Waiting time is reduced.
+Overall system throughput and CPU utilization increase.
+
+Q3:Memory Bottleneck Debugging 
+Memory Analysis
+
+Given:
+Code = 5 MB
+Heap = 150 MB
+Stack = 1 MB per thread
+Threads = 25
+Physical RAM = 2 GB (2048 MB)
+
+Total Memory Used:
+Code = 5 MB
+Heap = 150 MB
+Stack = 25 × 1 MB = 25 MB
+Total = 5 + 150 + 25 = 180 MB
+Although only 180 MB is allocated (well below 2 GB RAM), the program still experiences frequent page faults.
+Memory Issue Causing Performance Degradation
+
+The performance degradation is mainly due to:
+Frequent page faults caused by poor memory access patterns and heavy heap usage in a multi-threaded environment.
+Multiple threads accessing different memory pages can reduce cache efficiency and increase paging overhead.
+As a result, the CPU spends more time waiting for memory, slowing the program.
+
+Two Optimizations:
+1. Reduce Memory Usage
+Decrease unnecessary heap allocations.
+Reuse memory using object pools or efficient data structures.
+Reduce stack size if large stacks are not required.
+2. Optimize Thread Management
+Use a thread pool instead of creating many threads.
+Reduce the number of active threads to lower memory overhead and page faults.
+Improve memory locality by allowing threads to reuse the same memory.
+  
+Result:
+Fewer page faults.
+Faster memory access.
+Better CPU utilization.
+Improved overall program performance.
+
+  Q4:Starvation Debugging 
+Root Cause of Starvation
+
+In the Multilevel Queue Scheduling:
+Q1 (Highest Priority): Interactive (5 ms)
+Q2: System (10 ms)
+Q3: Batch (FCFS)
+Process P5 is in Q3 (lowest priority).
+Whenever processes arrive in Q1 or Q2, they are executed first. As a result, P5 keeps waiting indefinitely and never gets CPU time.
+
+Reason:
+Higher-priority queues always preempt lower-priority queues.
+Continuous arrival of Q1 and Q2 processes prevents Q3 processes from executing.
+This leads to starvation.
+  
+Optimization to Ensure Fairness:
+Use Aging.
+
+Gradually increase the priority of processes waiting for a long time.
+After waiting beyond a certain limit, P5 is promoted to a higher-priority queue and gets CPU time.
+  
+Result:
+Starvation is eliminated.
+Every process eventually gets CPU time.
+Fairness and system performance improve.
+
+  Q5:Context-Switch Overhead Debugging 
+Cause of High Context Switching
+
+Given:
+Context switches = 20,000/sec
+Average burst time = 2 ms
+Time quantum = 1 ms
+I/O wait frequency = Very High
+
+Reason:
+The time quantum (1 ms) is smaller than the average CPU burst (2 ms).
+Most processes are preempted before completing their CPU burst.
+Frequent I/O operations also cause processes to move between Running and Waiting states.
+Therefore, the CPU performs excessive context switches, increasing overhead.
+  
+Two Optimization:
+1. Increase the Time Quantum
+Increase the quantum from 1 ms to 2–4 ms.
+Processes complete more work before being preempted.
+Reduces unnecessary context switches.
+2. Reduce I/O Waiting
+Use asynchronous I/O, buffering, or caching.
+This reduces frequent transitions between Running and Waiting states.
+
+Result:
+Fewer context switches.
+Lower CPU overhead.
+Better CPU utilization and higher system throughput.
