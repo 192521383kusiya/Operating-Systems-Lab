@@ -1,0 +1,153 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 50
+#define NAME 30
+
+char files[MAX][NAME];
+int fileCount = 0;
+
+void createFile()
+{
+    char name[NAME];
+
+    printf("Enter file name: ");
+    scanf("%s", name);
+
+    // Check whether file already exists
+    for (int i = 0; i < fileCount; i++)
+    {
+        if (strcmp(files[i], name) == 0)
+        {
+            printf("File already exists!\n");
+            return;
+        }
+    }
+
+    if (fileCount < MAX)
+    {
+        strcpy(files[fileCount], name);
+        fileCount++;
+
+        printf("File created successfully.\n");
+    }
+    else
+    {
+        printf("Directory is full.\n");
+    }
+}
+
+void searchFile()
+{
+    char name[NAME];
+
+    printf("Enter file name to search: ");
+    scanf("%s", name);
+
+    for (int i = 0; i < fileCount; i++)
+    {
+        if (strcmp(files[i], name) == 0)
+        {
+            printf("File found in the directory.\n");
+            return;
+        }
+    }
+
+    printf("File not found.\n");
+}
+
+void deleteFile()
+{
+    char name[NAME];
+    int found = -1;
+
+    printf("Enter file name to delete: ");
+    scanf("%s", name);
+
+    for (int i = 0; i < fileCount; i++)
+    {
+        if (strcmp(files[i], name) == 0)
+        {
+            found = i;
+            break;
+        }
+    }
+
+    if (found == -1)
+    {
+        printf("File not found.\n");
+        return;
+    }
+
+    // Shift remaining files
+    for (int i = found; i < fileCount - 1; i++)
+    {
+        strcpy(files[i], files[i + 1]);
+    }
+
+    fileCount--;
+
+    printf("File deleted successfully.\n");
+}
+
+void displayFiles()
+{
+    if (fileCount == 0)
+    {
+        printf("Directory is empty.\n");
+        return;
+    }
+
+    printf("\nFiles in Single-Level Directory:\n");
+
+    for (int i = 0; i < fileCount; i++)
+    {
+        printf("%d. %s\n", i + 1, files[i]);
+    }
+}
+
+int main()
+{
+    int choice;
+
+    while (1)
+    {
+        printf("\n===== SINGLE LEVEL DIRECTORY =====\n");
+        printf("1. Create File\n");
+        printf("2. Search File\n");
+        printf("3. Delete File\n");
+        printf("4. Display Files\n");
+        printf("5. Exit\n");
+
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+            case 1:
+                createFile();
+                break;
+
+            case 2:
+                searchFile();
+                break;
+
+            case 3:
+                deleteFile();
+                break;
+
+            case 4:
+                displayFiles();
+                break;
+
+            case 5:
+                printf("Exiting program...\n");
+                return 0;
+
+            default:
+                printf("Invalid choice!\n");
+        }
+    }
+
+    return 0;
+}
