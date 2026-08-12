@@ -1,0 +1,83 @@
+#include <stdio.h>
+
+int main()
+{
+    int blockSize[20], processSize[20];
+    int allocation[20];
+    int m, n;
+    int i, j;
+
+    printf("Enter number of memory blocks: ");
+    scanf("%d", &m);
+
+    printf("Enter size of each memory block:\n");
+
+    for (i = 0; i < m; i++)
+    {
+        printf("Block %d: ", i + 1);
+        scanf("%d", &blockSize[i]);
+    }
+
+    printf("\nEnter number of processes: ");
+    scanf("%d", &n);
+
+    printf("Enter size of each process:\n");
+
+    for (i = 0; i < n; i++)
+    {
+        printf("Process %d: ", i + 1);
+        scanf("%d", &processSize[i]);
+        allocation[i] = -1;
+    }
+
+    // Best Fit Allocation
+    for (i = 0; i < n; i++)
+    {
+        int bestIndex = -1;
+
+        for (j = 0; j < m; j++)
+        {
+            if (blockSize[j] >= processSize[i])
+            {
+                if (bestIndex == -1 ||
+                    blockSize[j] < blockSize[bestIndex])
+                {
+                    bestIndex = j;
+                }
+            }
+        }
+
+        // Allocate process to smallest suitable block
+        if (bestIndex != -1)
+        {
+            allocation[i] = bestIndex;
+
+            blockSize[bestIndex] =
+                blockSize[bestIndex] - processSize[i];
+        }
+    }
+
+    // Display allocation
+    printf("\n===== BEST FIT MEMORY ALLOCATION =====\n");
+
+    printf("Process\tProcess Size\tBlock\n");
+
+    for (i = 0; i < n; i++)
+    {
+        if (allocation[i] != -1)
+        {
+            printf("P%d\t%d\t\tB%d\n",
+                   i + 1,
+                   processSize[i],
+                   allocation[i] + 1);
+        }
+        else
+        {
+            printf("P%d\t%d\t\tNot Allocated\n",
+                   i + 1,
+                   processSize[i]);
+        }
+    }
+
+    return 0;
+}
