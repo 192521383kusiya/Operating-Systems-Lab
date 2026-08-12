@@ -1,0 +1,90 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Employee
+{
+    int id;
+    char name[30];
+    float salary;
+};
+
+int main()
+{
+    FILE *fp;
+    struct Employee emp;
+    int choice, recordNo;
+
+    fp = fopen("employee.dat", "w+b");
+
+    if (fp == NULL)
+    {
+        printf("Unable to open file.\n");
+        return 1;
+    }
+
+    while (1)
+    {
+        printf("\n===== EMPLOYEE FILE =====\n");
+        printf("1. Add Employee\n");
+        printf("2. Display Employee\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+            case 1:
+                printf("\nEnter Employee ID: ");
+                scanf("%d", &emp.id);
+
+                printf("Enter Employee Name: ");
+                scanf("%s", emp.name);
+
+                printf("Enter Salary: ");
+                scanf("%f", &emp.salary);
+
+                fseek(fp, 0, SEEK_END);
+                fwrite(&emp, sizeof(struct Employee), 1, fp);
+
+                printf("Employee record added successfully.\n");
+                break;
+
+            case 2:
+                printf("\nEnter record number to access: ");
+                scanf("%d", &recordNo);
+
+                /*
+                 * Move file pointer directly to
+                 * the required employee record.
+                 */
+                fseek(fp,
+                      (recordNo - 1) * sizeof(struct Employee),
+                      SEEK_SET);
+
+                if (fread(&emp, sizeof(struct Employee), 1, fp) == 1)
+                {
+                    printf("\nEmployee Details\n");
+                    printf("-------------------------\n");
+                    printf("Employee ID : %d\n", emp.id);
+                    printf("Name        : %s\n", emp.name);
+                    printf("Salary      : %.2f\n", emp.salary);
+                }
+                else
+                {
+                    printf("Record not found.\n");
+                }
+
+                break;
+
+            case 3:
+                fclose(fp);
+                printf("File closed successfully.\n");
+                return 0;
+
+            default:
+                printf("Invalid choice!\n");
+        }
+    }
+
+    return 0;
+}
