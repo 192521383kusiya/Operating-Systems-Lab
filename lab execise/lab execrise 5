@@ -10,6 +10,7 @@ int main() {
 
     printf("Enter Burst Time and Priority for each process:\n");
 
+
     for(i = 0; i < n; i++) {
         p[i] = i + 1;
         printf("P%d Burst Time: ", i + 1);
