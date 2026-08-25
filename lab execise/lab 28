@@ -3,36 +3,36 @@
 
 int main()
 {
-    FILE *fp;
-    char filename[50];
-    char word[50];
     char line[200];
+    char word[50];
+    int n, i;
 
-    printf("Enter file name: ");
-    scanf("%s", filename);
+    printf("Enter number of lines: ");
+    scanf("%d", &n);
+
+    printf("Enter the lines:\n");
+
+    getchar();
+
+    char lines[n][200];
+
+    for (i = 0; i < n; i++)
+    {
+        fgets(lines[i], sizeof(lines[i]), stdin);
+    }
 
     printf("Enter word to search: ");
     scanf("%s", word);
 
-    fp = fopen(filename, "r");
-
-    if (fp == NULL)
-    {
-        printf("File not found.\n");
-        return 1;
-    }
-
     printf("\nLines containing the word '%s':\n", word);
 
-    while (fgets(line, sizeof(line), fp) != NULL)
+    for (i = 0; i < n; i++)
     {
-        if (strstr(line, word) != NULL)
+        if (strstr(lines[i], word) != NULL)
         {
-            printf("%s", line);
+            printf("%s", lines[i]);
         }
     }
-
-    fclose(fp);
 
     return 0;
 }
