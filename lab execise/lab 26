@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+    FILE *fp;
+    char filename[50], ch;
+    int choice;
+
+    printf("Enter file name: ");
+    scanf("%s", filename);
+
+    while (1)
+    {
+        printf("\n\n--- FILE MANAGEMENT OPERATIONS ---");
+        printf("\n1. Create/Write File");
+        printf("\n2. Read File");
+        printf("\n3. Append File");
+        printf("\n4. Exit");
+        printf("\nEnter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+            case 1:
+                fp = fopen(filename, "w");
+
+                if (fp == NULL)
+                {
+                    printf("Unable to create file.");
+                    break;
+                }
+
+                printf("Enter contents (press # to stop):\n");
+
+                while ((ch = getchar()) != '#')
+                {
+                    fputc(ch, fp);
+                }
+
+                fclose(fp);
+                printf("File created successfully.");
+                break;
+
+            case 2:
+                fp = fopen(filename, "r");
+
+                if (fp == NULL)
+                {
+                    printf("File not found.");
+                    break;
+                }
+
+                printf("\nFile contents:\n");
+
+                while ((ch = fgetc(fp)) != EOF)
+                {
+                    printf("%c", ch);
+                }
+
+                fclose(fp);
+                break;
+
+            case 3:
+                fp = fopen(filename, "a");
+
+                if (fp == NULL)
+                {
+                    printf("Unable to open file.");
+                    break;
+                }
+
+                printf("Enter contents to append (press # to stop):\n");
+
+                while ((ch = getchar()) != '#')
+                {
+                    fputc(ch, fp);
+                }
+
+                fclose(fp);
+                printf("Content appended successfully.");
+                break;
+
+            case 4:
+                exit(0);
+
+            default:
+                printf("Invalid choice.");
+        }
+    }
+
+    return 0;
+}
