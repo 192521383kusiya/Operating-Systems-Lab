@@ -1,0 +1,21 @@
+#include <stdio.h>
+#include <pthread.h>
+
+void *display(void *arg)
+{
+    printf("Thread is created and running.\n");
+    return NULL;
+}
+
+int main()
+{
+    pthread_t thread;
+
+    pthread_create(&thread, NULL, display, NULL);
+
+    printf("Main thread is running.\n");
+
+    pthread_join(thread, NULL);
+
+    return 0;
+}
