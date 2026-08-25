@@ -1,0 +1,61 @@
+#include <stdio.h>
+
+struct Block
+{
+    int blockNumber;
+    int next;
+};
+
+int main()
+{
+    struct Block blocks[20];
+    int n, i;
+    int first, last, current;
+
+    printf("Enter number of blocks in the file: ");
+    scanf("%d", &n);
+
+    printf("Enter block numbers:\n");
+
+    for (i = 0; i < n; i++)
+    {
+        printf("Block %d: ", i + 1);
+        scanf("%d", &blocks[i].blockNumber);
+    }
+
+    // Create linked list
+    for (i = 0; i < n - 1; i++)
+    {
+        blocks[i].next = blocks[i + 1].blockNumber;
+    }
+
+    // Last block points to -1
+    blocks[n - 1].next = -1;
+
+    // Directory contains first and last block
+    first = blocks[0].blockNumber;
+    last = blocks[n - 1].blockNumber;
+
+    printf("\nLinked File Allocation:\n");
+
+    printf("First Block = %d\n", first);
+    printf("Last Block  = %d\n", last);
+
+    printf("\nFile Blocks:\n");
+
+    current = first;
+
+    for (i = 0; i < n; i++)
+    {
+        printf("%d", current);
+
+        if (blocks[i].next != -1)
+            printf(" -> ");
+
+        current = blocks[i].next;
+    }
+
+    printf(" -> NULL\n");
+
+    return 0;
+}
