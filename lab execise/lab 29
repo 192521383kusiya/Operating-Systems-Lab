@@ -1,0 +1,76 @@
+#include <stdio.h>
+
+int buffer[5];
+int in = 0, out = 0;
+int count = 0;
+
+void produce()
+{
+    int item;
+
+    if (count == 5)
+    {
+        printf("Buffer is FULL. Producer cannot produce.\n");
+        return;
+    }
+
+    printf("Enter item to produce: ");
+    scanf("%d", &item);
+
+    buffer[in] = item;
+    in = (in + 1) % 5;
+    count++;
+
+    printf("Produced item: %d\n", item);
+}
+
+void consume()
+{
+    int item;
+
+    if (count == 0)
+    {
+        printf("Buffer is EMPTY. Consumer cannot consume.\n");
+        return;
+    }
+
+    item = buffer[out];
+    out = (out + 1) % 5;
+    count--;
+
+    printf("Consumed item: %d\n", item);
+}
+
+int main()
+{
+    int choice;
+
+    while (1)
+    {
+        printf("\n--- PRODUCER CONSUMER PROBLEM ---\n");
+        printf("1. Produce\n");
+        printf("2. Consume\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+            case 1:
+                produce();
+                break;
+
+            case 2:
+                consume();
+                break;
+
+            case 3:
+                return 0;
+
+            default:
+                printf("Invalid choice!\n");
+        }
+    }
+
+    return 0;
+}
