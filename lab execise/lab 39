@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+    int request[50];
+    int n, head, diskSize, direction;
+    int i, j, temp;
+    int totalHeadMovement = 0;
+
+    printf("Enter number of disk requests: ");
+    scanf("%d", &n);
+
+    printf("Enter disk requests:\n");
+    for (i = 0; i < n; i++)
+    {
+        scanf("%d", &request[i]);
+    }
+
+    printf("Enter initial head position: ");
+    scanf("%d", &head);
+
+    printf("Enter disk size: ");
+    scanf("%d", &diskSize);
+
+    printf("Enter direction (1 for right, 0 for left): ");
+    scanf("%d", &direction);
+
+    // Sort requests
+    for (i = 0; i < n - 1; i++)
+    {
+        for (j = i + 1; j < n; j++)
+        {
+            if (request[i] > request[j])
+            {
+                temp = request[i];
+                request[i] = request[j];
+                request[j] = temp;
+            }
+        }
+    }
+
+    printf("\nC-SCAN Disk Scheduling:\n");
+    printf("Order: %d", head);
+
+    if (direction == 1)
+    {
+        // Move towards right
+        for (i = 0; i < n; i++)
+        {
+            if (request[i] >= head)
+            {
+                totalHeadMovement += abs(head - request[i]);
+                head = request[i];
+
+                printf(" -> %d", request[i]);
+            }
+        }
+
+        // Move to end of disk
+        if (head != diskSize - 1)
+        {
+            totalHeadMovement += abs(head - (diskSize - 1));
+            head = diskSize - 1;
+
+            printf(" -> %d", head);
+        }
+
+        // Jump to beginning
+        totalHeadMovement += diskSize - 1;
+        head = 0;
+
+        printf(" -> %d", head);
+
+        // Continue moving right
+        for (i = 0; i < n; i++)
+        {
+            if (request[i] < head)
+            {
+                totalHeadMovement += abs(head - request[i]);
+                head = request[i];
+
+                printf(" -> %d", request[i]);
+            }
+        }
+    }
+    else
+    {
+        // Move towards left
+        for (i = n - 1; i >= 0; i--)
+        {
+            if (request[i] <= head)
+            {
+                totalHeadMovement += abs(head - request[i]);
+                head = request[i];
+
+                printf(" -> %d", request[i]);
+            }
+        }
+
+        // Move to beginning of disk
+        if (head != 0)
+        {
+            totalHeadMovement += head;
+            head = 0;
+
+            printf(" -> %d", head);
+        }
+
+        // Jump to end of disk
+        totalHeadMovement += diskSize - 1;
+        head = diskSize - 1;
+
+        printf(" -> %d", head);
+
+        // Continue moving left
+        for (i = n - 1; i >= 0; i--)
+        {
+            if (request[i] < head)
+            {
+                totalHeadMovement += abs(head - request[i]);
+                head = request[i];
+
+                printf(" -> %d", request[i]);
+            }
+        }
+    }
+
+    printf("\n\nTotal Head Movement = %d cylinders\n",
+           totalHeadMovement);
+
+    return 0;
+}
