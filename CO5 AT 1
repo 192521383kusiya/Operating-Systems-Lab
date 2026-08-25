@@ -1,0 +1,528 @@
+# 1. Optimized Linux File System Layout for a 50 GB Server
+
+## Introduction
+
+A server with a total storage capacity of 50 GB needs proper storage management because system logs, user files, and application data can grow rapidly. If the disk becomes full, critical services may stop working. Therefore, a suitable partitioning scheme, log rotation, monitoring, and reserved storage should be used.
+
+## Proposed File System Layout
+
+```text
+Partition 	Size  	Purpose
+/boot	     1 GB	    Stores kernel and boot files
+/	         8 GB	    Stores operating system and system files
+/var	     8 GB    	Stores logs, cache, and variable data
+/home     10 GB	    Stores user files
+/srv	     8 GB   	Stores application and service data
+Swap	     4 GB	    Provides virtual memory
+Free/Reserve 11 GB	Used for future growth and emergency situations
+Total	50 GB	Complete storage capacity
+```
+
+## Importance of Separate Partitions
+
+The `/var` directory should be kept in a separate partition because Linux stores most system logs in `/var/log`. If logs grow rapidly, they will consume only the allocated `/var` space instead of filling the root filesystem.
+
+Similarly, `/home` can be separated so that large user files do not affect system files.
+
+## Log Rotation
+
+Linux provides the `logrotate` utility to automatically rotate, compress, and remove old log files.
+
+Example configuration:
+
+```text
+/var/log/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+}
+```
+
+This configuration rotates logs daily, keeps a limited number of old log files, and compresses older logs to save disk space.
+
+## Keeping Logs Below 10 GB
+
+To ensure that logs do not exceed 10 GB:
+
+1. Allocate a separate `/var` partition.
+2. Configure `logrotate` for regular rotation.
+3. Compress old log files.
+4. Delete unnecessary old logs.
+5. Monitor disk usage regularly.
+6. Configure alerts when disk usage becomes high.
+7. Apply journald storage limits if `systemd-journald` is being used.
+
+Useful commands are:
+
+```bash
+df -h
+du -sh /var/log/*
+lsblk
+```
+
+`df -h` displays filesystem usage, `du` shows directory usage, and `lsblk` displays available disks and partitions.
+
+## Preventing Service Interruption
+
+A separate `/var` partition prevents growing log files from filling the root filesystem. Keeping 11 GB of free/reserved space also provides emergency storage for unexpected growth.
+
+Critical services can therefore continue operating even when log files grow rapidly.
+
+## Conclusion
+
+The proposed 50 GB layout uses separate partitions for the operating system, logs, user files, and application data. Combined with `logrotate`, compression, monitoring, and reserved storage, this design provides efficient disk utilization and prevents disk exhaustion. It also ensures that critical services continue operating without interruption.
+
+---
+
+# 2. Kernel-Level Optimization for High CPU Workloads
+
+## Introduction
+
+A Linux system handling high CPU workloads may experience frequent context switching. Context switching occurs when the CPU switches from one process or thread to another. Excessive context switching creates overhead and reduces overall CPU efficiency. Since hardware upgrades are not possible, kernel-level optimization techniques can be used.
+
+## 1. Scheduler Tuning
+
+The Linux scheduler determines which process should receive CPU time. Scheduler behavior can be analyzed using:
+
+```bash
+top
+htop
+ps -eo pid,ni,pri,cmd
+```
+
+These commands help identify CPU-intensive processes and their priorities.
+
+## 2. Process Priority
+
+Linux provides `nice` and `renice` commands to control process priority.
+
+Example:
+
+```bash
+nice -n -5 ./application
+```
+
+For an already running process:
+
+```bash
+renice -5 -p PID
+```
+
+Critical processes can be given higher priority so that they receive CPU time more quickly.
+
+## 3. CPU Affinity
+
+CPU affinity allows a process to run on specific CPU cores.
+
+Example:
+
+```bash
+taskset -c 2 ./application
+```
+
+This can reduce unnecessary movement of processes between CPU cores and improve CPU cache efficiency.
+
+## 4. Real-Time Scheduling
+
+For real-time applications, Linux provides scheduling policies such as:
+
+* SCHED_FIFO
+* SCHED_RR
+
+Example:
+
+```bash
+chrt -f 80 ./realtime_app
+```
+
+This gives the application a real-time scheduling priority.
+
+## 5. Kernel Modules
+
+Kernel modules allow additional kernel functionality to be loaded when required without rebuilding the entire kernel.
+
+Useful commands include:
+
+```bash
+lsmod
+modprobe module_name
+rmmod module_name
+```
+
+Only required modules should be loaded to avoid unnecessary system overhead.
+
+## 6. Disable Unnecessary Services
+
+Unnecessary background services can consume CPU and cause additional scheduling activity.
+
+They can be identified using:
+
+```bash
+systemctl --type=service
+```
+
+Services that are not required can be stopped or disabled.
+
+## 7. Monitor Context Switching
+
+The `vmstat` command can be used to monitor context switches.
+
+```bash
+vmstat 1
+```
+
+The `cs` column represents the number of context switches per second.
+
+## Optimization Strategy
+
+```text
+Technique	            Purpose	                       Benefit
+Scheduler tuning	  Improve CPU scheduling	        Reduces scheduling overhead
+Nice/Renice       	Adjust process priority	        Gives CPU preference to important tasks
+CPU Affinity	      Bind processes to CPU cores	    Reduces process migration
+SCHED_FIFO/SCHED_RR	Support real-time tasks       	Improves response time
+Kernel modules	    Load only required functionality	Reduces unnecessary overhead
+Disable unused    	Reduce background activity	 Frees CPU resources
+vmstat monitoring	Measure context switchingHelps evaluate performance
+```
+
+## Conclusion
+
+Since hardware upgrades are unavailable, Linux kernel-level optimization can improve system performance through scheduler tuning, process priorities, CPU affinity, real-time scheduling, and appropriate kernel modules. These techniques reduce unnecessary context switching and provide better CPU performance for real-time applications.
+
+---
+
+# 3. Processing 1 Million Log Entries Using Shell Scripting
+
+## Introduction
+
+Processing one million log entries using shell scripting requires efficient commands because processing every line individually using shell loops can be slow. Optimized Linux commands such as `awk`, `grep`, `sort`, `uniq`, and `wc` can process large amounts of data efficiently.
+
+## Proposed Approach
+
+Assume the log file is:
+
+```text
+server.log
+```
+
+Instead of using a shell loop for every line, commands that process the complete file in a single operation should be used.
+
+## 1. Count Error Entries
+
+```bash
+grep -c "ERROR" server.log
+```
+
+This directly counts the number of lines containing `ERROR`.
+
+## 2. Extract Required Fields
+
+```bash
+awk '{print $1,$2,$5}' server.log
+```
+
+`awk` is suitable for extracting fields from large text files.
+
+## 3. Count Frequent Entries
+
+```bash
+awk '{print $5}' server.log | sort | uniq -c | sort -nr
+```
+
+This extracts a particular field, sorts the values, counts duplicates, and displays the most frequent values first.
+
+## 4. Search Specific Log Entries
+
+```bash
+grep "ERROR" server.log
+```
+
+It is better than:
+
+```bash
+cat server.log | grep "ERROR"
+```
+
+because the first command avoids creating an unnecessary `cat` process.
+
+## 5. Avoid Shell Loops
+
+An inefficient method is:
+
+```bash
+while read line
+do
+    ...
+done < server.log
+```
+
+For one million lines, repeatedly executing shell commands creates significant overhead.
+
+Instead, `awk` can process the complete file efficiently:
+
+```bash
+awk '/ERROR/ {count++} END {print "Errors:", count}' server.log
+```
+
+## 6. Parallel Processing
+
+If the log file can be divided into independent sections, it can be split into smaller files.
+
+```bash
+split -n l/4 server.log log_part_
+```
+
+The parts can then be processed independently and the results combined.
+
+## 7. Measure Execution Time
+
+The execution time can be checked using:
+
+```bash
+time ./logscript.sh
+```
+
+The script should be tested with one million log entries and optimized until it completes within the required two-minute limit.
+
+## Efficient Commands and Their Advantages
+
+```text
+Command	      Purpose	               Advantage
+grep	     Search patterns	         Fast text searching
+awk     	Process and analyze   	  Efficient for structured logs
+sort	    Arrange data	            optimized sorting utility
+uniq	    Remove/count duplicates  	Efficient duplicate counting
+wc	      Count lines/words        	Very fast counting
+split   	Divide large files	       Enables parallel processing
+time	Measure execution time	Helps verify the 2-minute requirement
+```
+
+## Justification
+
+`awk` and `grep` are preferred because they process large files efficiently without requiring a separate shell operation for every line. Avoiding unnecessary `cat` commands and shell loops reduces process creation and I/O overhead.
+
+## Conclusion
+
+An efficient shell script for processing one million log entries should primarily use `awk`, `grep`, `sort`, `uniq`, and `wc`. It should avoid line-by-line shell loops and unnecessary commands. Parallel processing can also be used when appropriate. These techniques provide high performance and help the script complete within the required two-minute limit.
+
+---
+
+# 4. Managing a Faulty Process Consuming 90% CPU
+
+## Introduction
+
+A faulty background process consuming 90% CPU can significantly reduce system performance and affect critical services. The process should be identified, monitored, and controlled without restarting the system.
+
+## Step 1: Identify the Faulty Process
+
+The `top` command can be used:
+
+```bash
+top
+```
+
+Another option is:
+
+```bash
+ps aux --sort=-%cpu | head
+```
+
+This displays the processes consuming the highest amount of CPU.
+
+## Step 2: Monitor the Process
+
+After identifying the process ID (PID), monitor it using:
+
+```bash
+top -p PID
+```
+
+or:
+
+```bash
+pidstat -p PID 1
+```
+
+This determines whether the process continuously consumes excessive CPU.
+
+## Step 3: Check Process Information
+
+Use:
+
+```bash
+ps -fp PID
+```
+
+This displays information such as:
+
+* Process ID
+* Parent process
+* Process owner
+* Start time
+* Command being executed
+
+## Step 4: Reduce Process Priority
+
+If the process is required but is consuming excessive CPU, its priority can be reduced:
+
+```bash
+renice 10 -p PID
+```
+
+This allows more CPU time to be given to critical processes.
+
+## Step 5: Restrict CPU Usage
+
+If the process is managed by `systemd`, CPU usage can be limited using resource controls such as:
+
+```text
+CPUQuota=20%
+```
+
+This prevents the service from consuming an excessive percentage of CPU resources.
+
+## Step 6: Terminate the Process
+
+If the process is unnecessary, first attempt graceful termination:
+
+```bash
+kill PID
+```
+
+If the process does not respond, a forceful termination can be used:
+
+```bash
+kill -9 PID
+```
+
+`kill -9` should be used only as a last resort because the process cannot perform normal cleanup.
+
+## Step 7: Protect Critical Services
+
+Before terminating the process:
+
+1. Check whether it is required by another service.
+2. Identify its parent process.
+3. Check its dependencies.
+4. Monitor critical services.
+5. Avoid terminating essential system processes.
+
+## Step 8: Verify System Recovery
+
+After controlling the faulty process, use:
+
+```bash
+top
+uptime
+systemctl --failed
+```
+
+These commands help verify that CPU usage has decreased and critical services are functioning normally.
+
+## Process Management Strategy
+
+```text
+
+```
+
+## Conclusion
+
+The best approach is to identify, monitor, control, and verify the faulty process. Using `top`, `ps`, `pidstat`, `renice`, `CPUQuota`, and `kill` allows the administrator to control CPU usage without restarting the system. Critical services can continue operating without interruption.
+
+---
+
+# 5. Resource Allocation for 5 Virtual Machines with 16 GB RAM
+
+## Introduction
+
+A physical server has 16 GB of RAM and needs to host five virtual machines. Each VM requires a minimum of 2 GB, while the host operating system requires 4 GB. Proper memory allocation is required to ensure that all VMs operate smoothly.
+
+## Given Requirements
+
+* Total physical RAM = 16 GB
+* Number of VMs = 5
+* Minimum RAM per VM = 2 GB
+* Host OS requirement = 4 GB
+
+## Memory Calculation
+
+Memory required for five VMs:
+
+```text
+5 × 2 GB = 10 GB
+```
+
+Memory required by the host:
+
+```text
+4 GB
+```
+
+Total required memory:
+
+```text
+10 GB + 4 GB = 14 GB
+```
+
+Remaining memory:
+
+```text
+16 GB - 14 GB = 2 GB
+```
+
+Therefore, 2 GB can be maintained as reserved/free memory.
+
+## Proposed RAM Allocation
+
+```text
+Resource	Number	RAM per Unit	Total RAM
+Host Operating System	1	4 GB	4 GB
+VM1	1	2 GB	2 GB
+VM2	1	2 GB	2 GB
+VM3	1	2 GB	2 GB
+VM4	1	2 GB	2 GB
+VM5	1	2 GB	2 GB
+Reserved/Free RAM	-	-	2 GB
+Total	-	-	16 GB
+```
+
+## 1. Dynamic Memory Allocation
+
+If supported by the virtualization platform, memory can be dynamically allocated according to VM requirements. A VM requiring more memory can receive additional memory while an idle VM can release unused memory.
+
+## 2. Memory Ballooning
+
+Memory ballooning allows the hypervisor to reclaim unused memory from one VM and provide it to another VM that requires additional memory.
+
+For example, if VM1 is idle and VM4 has a temporary workload increase, some available memory can be reassigned to VM4.
+
+## 3. Memory Overcommitment
+
+Memory overcommitment allows the hypervisor to allocate more virtual memory than the physical memory available. However, it should be used carefully because excessive overcommitment can cause swapping and reduce performance.
+
+## 4. Swap Space
+
+The host can maintain limited swap space as an emergency mechanism. However, VMs should not depend heavily on swapping because disk-based memory is much slower than RAM.
+
+## 5. Priority-Based Allocation
+
+Critical VMs should receive higher resource priority. Less important VMs can continue using the minimum 2 GB allocation.
+
+## Virtualization Techniques
+
+```text
+Technique	Purpose	Benefit
+Dynamic memory	Adjust RAM according to workload	Better resource utilization
+Memory ballooning	Reclaim unused VM memory	Allows redistribution of RAM
+Memory overcommitment	Allocate virtual memory efficiently	Supports flexible resource usage
+Swap	Provides emergency memory	Prevents immediate memory exhaustion
+Priority allocation	Give resources to important VMs	Protects critical workloads
+```
+
+## Conclusion
+
+The five VMs require a minimum of 10 GB RAM, while the host requires 4 GB. Therefore, 14 GB is required and 2 GB remains available as a safety reserve. Allocating 4 GB to the host, 2 GB to each VM, and keeping 2 GB reserved provides a balanced configuration. Dynamic memory allocation and memory ballooning can further improve resource utilization and ensure smooth VM operation.
