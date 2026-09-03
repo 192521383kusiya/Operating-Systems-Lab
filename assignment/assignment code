@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+
+    int request[] = {15, 95, 35, 110, 70, 25, 105, 50};
+    int n = 8;
+
+    int head = 60;
+    int totalSeek = 0;
+
+    printf("SCAN DISK SCHEDULING\n\n");
+
+    printf("Initial Head Position = %d\n", head);
+
+    /* Sort requests */
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+
+            if (request[i] > request[j]) {
+                int temp = request[i];
+                request[i] = request[j];
+                request[j] = temp;
+            }
+        }
+    }
+
+    printf("\nSeek Sequence:\n");
+    printf("%d", head);
+
+    /* Service requests greater than head */
+    for (int i = 0; i < n; i++) {
+
+        if (request[i] >= head) {
+
+            totalSeek += abs(head - request[i]);
+            head = request[i];
+
+            printf(" -> %d", head);
+        }
+    }
+
+    /* Move to end of disk */
+    totalSeek += abs(head - 120);
+    head = 120;
+
+    printf(" -> %d", head);
+
+    /* Reverse direction */
+    for (int i = n - 1; i >= 0; i--) {
+
+        if (request[i] < 60) {
+
+            totalSeek += abs(head - request[i]);
+            head = request[i];
+
+            printf(" -> %d", head);
+        }
+    }
+
+    printf("\n\nTotal Head Movement = %d cylinders\n",
+           totalSeek);
+
+    return 0;
+}
+output:
+SCAN DISK SCHEDULING
+
+Initial Head Position = 60
+
+Seek Sequence:
+60 -> 70 -> 95 -> 105 -> 110 -> 120 -> 50 -> 35 -> 25 -> 15
+
+Total Head Movement = 165 cylinders
+
+
+=== Code Execution Successful ===
